@@ -54,7 +54,8 @@ local function get_first_empty_slot()
     log.trace("_get_first_empty_slot()")
     for idx = 1, M.get_length() do
         local filename = M.get_marked_file_name(idx)
-        if filename == "" then
+        -- print("filename", filename)
+        if filename == "" or filename == "(empty)" then
             return idx
         end
     end
@@ -214,6 +215,7 @@ function M.add_file(file_name_or_buf_id)
     filter_filetype()
     local buf_name = get_buf_name(file_name_or_buf_id)
     log.trace("add_file():", buf_name)
+    -- print("add_file():", buf_name)
 
     if M.valid_index(M.get_index_of(buf_name)) then
         -- we don't alter file layout.
@@ -406,6 +408,23 @@ function M.toggle_file(file_name_or_buf_id)
         print("Mark added")
         log.debug("toggle_file(): Mark added")
     end
+end
+
+function M.replace_file(id, file_name_or_buf_id)
+    local buf_name = get_buf_name(file_name_or_buf_id)
+    log.debug("replace_file():", buf_name)
+    print("replace_file():", buf_name)
+
+    validate_buf_name(buf_name)
+
+    harpoon.get_mark_config().marks[id] = create_mark("")
+
+    local found_idx = get_first_empty_slot()
+    harpoon.get_mark_config().marks[found_idx] = create_mark(buf_name)
+    log.debug("toggle_file(): Mark added")
+
+    emit_changed()
+    M.remove_empty_tail(false)
 end
 
 function M.get_current_index()
